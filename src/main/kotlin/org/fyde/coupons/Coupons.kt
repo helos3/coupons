@@ -1,52 +1,57 @@
 package org.fyde.coupons
 
+import org.fyde.Exposed
+import org.fyde.mapFrom
 import org.jooby.Kooby
-import org.jooby.apitool.ApiTool
+import org.jsoup.Jsoup
 
 /**
- * @author <a href="mailto:rpyakshev@wiley.com">Rushan Pyakshev</a>
+ * @author Rushan Pyakshev
  */
 
-class Api:  Kooby({
-    path("/v1") {
-        path("/coupons") {
-            get { req ->
-                getCoupons(req.param("types").toList().map { CouponType.from(it) })
-            }
-            get("/:id") {  }
-            path("/:type/secret") {
-                put {  }
-                delete {  }
-            }
+class Coupons : Kooby({
 
+    use(Exposed())
+
+    path("/v1/coupons/") {
+        get {
+            getCoupons(CouponType.values().toList())
+        }
+        get("/:id") {
+            TODO()
+        }
+        get("/:type") { req ->
+            getCoupons(req.param("type").toList().map { CouponType.from(it) })
+        }
+        path("/:type/secret") {
+            put {
+                TODO()
+            }
+            delete {
+                TODO()
+            }
         }
     }
-
 })
 
 fun getCoupons(types: List<CouponType>) = types.asSequence()
         .map { couponsRouter[it]!!.invoke() }
         .reduce { acc, list -> acc + list }
 
-val couponsRouter: Map<CouponType, () -> List<Coupon>> = mapOf(
-        Pair(CouponType.KFC, ::kfc),
-        Pair(CouponType.BK, ::bk),
-        Pair(CouponType.NONE, { emptyList<Coupon>() })
+val parsers: Map<CouponType, () -> List<String>> = mapOf(
+        Pair(CouponType.KFC, {
+            Jsoup.connect("https://www.kfc.ru/promo/74").get()
+                    .getElementsByClass("coupon-list__item")
+                    .map { it.child(0).attr("src") }
+        }),
+        Pair(CouponType.BK, {
+            Jsoup.connect("https://burgerking.ru/bigboard/coupons").get()
+                    .getElementsByAttributeValue("class", "coupon-img mt20")
+                    .map { it.attr("src").replace("..", "https://burgerking.ru") }
+
+        }),
+        Pair(CouponType.NONE, { emptyList<String>() })
 )
 
-
-enum class CouponType { KFC, BK, NONE;
-
-    companion object {
-        private val values = values().map { CouponType.toString() }
-
-        fun from(input: String): CouponType = if (values.contains(input)) valueOf(input) else NONE
-
-    }
-}
-
-data class Coupon(val url: String, val type: CouponType)
-
-fun kfc() = listOf(Coupon("google.com", CouponType.KFC))
-
-fun bk() = emptyList<Coupon>()
+val couponsRouter: Map<CouponType, () -> List<String>> =
+        mapFrom(CouponType.values()) { parsers[it]!! }
