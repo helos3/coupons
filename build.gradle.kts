@@ -34,11 +34,10 @@ dependencies {
     compile(kotlin("stdlib-jdk8"))
     compile("org.jooby:jooby-lang-kotlin:1.5.1")
     compile("org.jooby:jooby-netty:1.5.1")
-    compile("org.jooby:jooby-jackson:1.5.1")
+    compile("org.jooby:jooby-gson:1.5.1")
     compile("org.jooby:jooby-apitool:1.5.1")
     compile("org.jooby:jooby-jdbc:1.5.1")
     compile("org.jsoup:jsoup:1.10.3")
-    compile("com.fasterxml.jackson.module:jackson-module-kotlin:2.9.4")
     compile("org.jetbrains.exposed:exposed:0.10.5")
     compile("org.postgresql:postgresql:42.2.2")
     compile("org.jooby:jooby-hbm:1.5.1")
@@ -58,9 +57,9 @@ tasks.withType<KotlinCompile> {
 
 application {
     mainClassName = "org.fyde.AppKt"
-    applicationName = "app"
-    version = "1.0-SNAPSHOT"
-    group = "li.barlog.template.kotlin"
+    applicationName = "coupons"
+    version = "1.0"
+    group = "org.fyde"
 }
 
 val fatJar = task("fatJar", type = Jar::class) {

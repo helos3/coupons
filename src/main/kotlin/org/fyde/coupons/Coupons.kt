@@ -1,6 +1,6 @@
 package org.fyde.coupons
 
-import org.fyde.Exposed
+import org.fyde.coupons.database.CouponType
 import org.fyde.mapFrom
 import org.jooby.Kooby
 import org.jsoup.Jsoup
@@ -12,22 +12,15 @@ import org.jsoup.Jsoup
 class Coupons : Kooby({
 
     path("/v1/coupons/") {
-        get {
-            getCoupons(CouponType.values().toList())
-        }
         get("/:id") {
             TODO()
         }
         get("/:type") { req ->
-            getCoupons(req.param("type").toList().map { CouponType.from(it) })
+            TODO()
+//            getCoupons(req.param("type").toList().map { CouponType.from(it) })
         }
-        path("/:type/secret") {
-            put {
-                TODO()
-            }
-            delete {
-                TODO()
-            }
+        get("/secret/:type") {
+            TODO()
         }
     }
 })
