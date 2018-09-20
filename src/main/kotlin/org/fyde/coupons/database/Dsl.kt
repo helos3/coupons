@@ -2,6 +2,7 @@ package org.fyde.coupons.database
 
 
 import org.jetbrains.exposed.sql.Table
+import org.joda.time.DateTime
 
 enum class CouponType { KFC, BK, NONE;
 
@@ -21,7 +22,7 @@ object CouponMetadatas: Table() {
 object CouponGroups: Table() {
     val id = long("id").autoIncrement().primaryKey()
     val terms = varchar("terms", 255)
-    val obtainDate = date("publish_date")
+    val obtainDate = date("publish_date").default(DateTime.now())
     val url = varchar("url", 50)
     val invalidationDate = datetime("invalidation_date")
     val type = enumeration("type", CouponType::class)
@@ -30,7 +31,7 @@ object CouponGroups: Table() {
 object SecretCoupons: Table() {
     val url = varchar("url", 50).nullable()
     val couponId = long("coupon_id") references CouponMetadatas.id
-    val publishDate = date("publish_date")
+    val publishDate = date("publish_date").default(DateTime.now())
     val code = varchar("code", 10)
     val valid = bool("valid").default(true)
     val reportNumber = integer("report_number").default(0)
@@ -41,7 +42,7 @@ object SecretCoupons: Table() {
 object Coupons: Table() {
     val couponId = long("coupon_id") references CouponMetadatas.id
     val groupId = long("group_id") references CouponGroups.id
-    val publishDate = date("publish_date")
+    val publishDate = date("publish_date").default(DateTime.now())
     val url = varchar("url", 50)
 
 }
