@@ -15,7 +15,8 @@ fun main(args: Array<String>) {
 
 class App : Kooby({
     use(Jackson(ObjectMapper().registerKotlinModule()))
-    use(Jdbc("jdbc:postgresql://localhost:5432/db"))
+    use(Jdbc("db")
+            .doWith { t -> t.dataSourceProperties.remove("url") }) // bcs postgres datasource has no url
     use(Exposed())
     use(Coupons())
 

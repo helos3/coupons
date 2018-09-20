@@ -11,8 +11,6 @@ import org.jsoup.Jsoup
 
 class Coupons : Kooby({
 
-    use(Exposed())
-
     path("/v1/coupons/") {
         get {
             getCoupons(CouponType.values().toList())

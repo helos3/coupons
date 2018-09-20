@@ -1,5 +1,6 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.gradle.api.tasks.wrapper.Wrapper.DistributionType
+import org.gradle.jvm.tasks.Jar
 
 buildscript {
     var kotlin_version: String by extra
@@ -12,15 +13,15 @@ buildscript {
         classpath(kotlin("gradle-plugin", kotlin_version))
     }
 }
-
+val kotlin_version: String by extra
 group = "coupons"
 version = "1.0"
 
 plugins {
     kotlin("jvm") version "1.2.70"
+    application
 }
 
-val kotlin_version: String by extra
 
 repositories {
     mavenCentral()
@@ -39,9 +40,12 @@ dependencies {
     compile("org.jsoup:jsoup:1.10.3")
     compile("com.fasterxml.jackson.module:jackson-module-kotlin:2.9.4")
     compile("org.jetbrains.exposed:exposed:0.10.5")
-    compile("postgresql:postgresql:9.1-901-1.jdbc4")
+    compile("org.postgresql:postgresql:42.2.2")
+    compile("org.jooby:jooby-hbm:1.5.1")
 
 }
+
+
 task<Wrapper>("wrapper") {
     gradleVersion = "4.10"
     distributionType = DistributionType.ALL
@@ -51,3 +55,30 @@ task<Wrapper>("wrapper") {
 tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "1.8"
 }
+
+application {
+    mainClassName = "org.fyde.AppKt"
+    applicationName = "app"
+    version = "1.0-SNAPSHOT"
+    group = "li.barlog.template.kotlin"
+}
+
+val fatJar = task("fatJar", type = Jar::class) {
+    baseName = "${project.name}-fat"
+    manifest {
+        attributes["Main-Class"] = "org.fyde.AppKt"
+    }
+    from(
+            configurations.runtime.map {
+                if (it.isDirectory) it else zipTree(it)
+            }
+    )
+    with(tasks["jar"] as CopySpec)
+}
+
+tasks {
+    "build" {
+        dependsOn(fatJar)
+    }
+}
+
