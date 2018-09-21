@@ -4,7 +4,7 @@ import org.gradle.jvm.tasks.Jar
 
 buildscript {
     var kotlin_version: String by extra
-    kotlin_version = "1.2.61"
+    kotlin_version = "1.2.21"
 
     repositories {
         mavenCentral()

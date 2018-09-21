@@ -1,23 +1,20 @@
 package org.fyde.coupons.database
 
-import com.google.common.collect.ArrayListMultimap
-import com.google.common.collect.Multimap
 import org.fyde.coupons.Coupon
 import org.fyde.coupons.CouponGroup
 import org.fyde.coupons.SecretCoupon
 import org.jetbrains.exposed.sql.Op
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.innerJoin
 import org.jetbrains.exposed.sql.select
-import org.jetbrains.exposed.sql.transactions.transaction
 import org.joda.time.DateTime
-import org.jooby.internal.apitool.antlr.misc.MultiMap
 
 /**
  * @author <a href="mailto:rpyakshev@wiley.com">Rushan Pyakshev</a>
  */
 
-fun selectByType(type: CouponType) {
+fun selectByType(type: CouponType) : List<CouponGroup>? {
     val groupIdToTerms = mutableMapOf<Long, String>()
     val groupIdToCoupon = mutableMapOf<Long, MutableList<Coupon>>()
 
@@ -30,23 +27,42 @@ fun selectByType(type: CouponType) {
             .forEach {
                 groupIdToTerms.getOrPut(it[CouponGroups.id]) { it[CouponGroups.terms] }
                 groupIdToCoupon.getOrPut(it[CouponGroups.id]) { mutableListOf() }
-                        .add(Coupon(it[CouponMetadatas.id], it[Coupons.url], it[CouponMetadatas.shareText] ?: "def"))
+                        .add(Coupon(it[CouponMetadatas.id], it[Coupons.url], shareText(it[CouponMetadatas.shareText])))
             }
 
-    groupIdToTerms.map{CouponGroup(it.value, groupIdToCoupon[it.key]!!) }
+    return groupIdToTerms
+            .takeIf { it.isNotEmpty() }
+            ?.map { CouponGroup(it.value, groupIdToCoupon[it.key]!!) }
 }
 
-fun selectSecretCouponsByType(type: CouponType) {
-    SecretCoupons.innerJoin(CouponMetadatas, { SecretCoupons.couponId }, { CouponMetadatas.id })
-            .slice(CouponMetadatas.id, CouponMetadatas.shareText, SecretCoupons.code, SecretCoupons.url)
-            .select { SecretCoupons.valid.eq(true) and SecretCoupons.type.eq(type) }
-            .map { SecretCoupon(
-                    it[CouponMetadatas.id],
-                    it[CouponMetadatas.shareText] ?: "def",
-                    it[SecretCoupons.code],
-                    it[SecretCoupons.url]
-            ) }
+fun getCoupon(id: Long): Coupon? =
+        Coupons.innerJoin(CouponMetadatas, { Coupons.couponId }, { CouponMetadatas.id })
+                .slice(CouponMetadatas.id, CouponMetadatas.shareText, Coupons.url)
+                .select { CouponMetadatas.id.eq(id) }
+                .map { Coupon(it[CouponMetadatas.id], it[Coupons.url], shareText(it[CouponMetadatas.shareText])) }
+                .firstOrNull()
 
-}
+
+fun selectSecretCouponsByType(type: CouponType) : List<SecretCoupon>? =
+        selectSecretCoupons(SecretCoupons.type.eq(type)).takeIf { it.isNotEmpty() }
+
+fun getSecretCoupon(id: Long) : SecretCoupon? =
+        selectSecretCoupons(SecretCoupons.couponId.eq(id)).firstOrNull()
+
+private fun selectSecretCoupons(where: Op<Boolean>): List<SecretCoupon> =
+        SecretCoupons.innerJoin(CouponMetadatas, { SecretCoupons.couponId }, { CouponMetadatas.id })
+                .slice(CouponMetadatas.id, CouponMetadatas.shareText, SecretCoupons.code, SecretCoupons.url, SecretCoupons.description)
+                .select { SecretCoupons.valid.eq(true).and(where) }
+                .map {
+                    SecretCoupon(
+                            it[CouponMetadatas.id],
+                            shareText(it[CouponMetadatas.shareText]),
+                            it[SecretCoupons.description],
+                            it[SecretCoupons.code],
+                            it[SecretCoupons.url]
+                    )
+                }
+
+private fun shareText(input: String?) = input ?: "def"
 
 

@@ -5,8 +5,7 @@ import com.google.inject.Key
 import com.google.inject.name.Names
 import com.typesafe.config.Config
 import org.jetbrains.exposed.sql.Database
-import org.jooby.Env
-import org.jooby.Jooby
+import org.jooby.*
 import java.util.NoSuchElementException
 import javax.sql.DataSource
 
@@ -25,3 +24,5 @@ class Exposed(val name: String = "db") : Jooby.Module {
         env.serviceKey().generate(Database::class.java, name) { key -> binder.bind(key).toInstance(db) }
     }
 }
+
+fun <T: Any?> T.toResult() = this?.let { Results.json(it) } ?: Results.noContent()

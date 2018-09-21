@@ -4,12 +4,12 @@ package org.fyde.coupons.database
 import org.jetbrains.exposed.sql.Table
 import org.joda.time.DateTime
 
-enum class CouponType { KFC, BK, NONE;
+enum class CouponType { KFC, BK;
 
     companion object {
         private val values = values().map { CouponType.toString() }
 
-        fun from(input: String): CouponType = if (values.contains(input)) valueOf(input) else NONE
+        fun from(input: String): CouponType? = if (values.contains(input)) valueOf(input) else null
     }
 }
 

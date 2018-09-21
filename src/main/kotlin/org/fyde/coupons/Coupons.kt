@@ -1,8 +1,13 @@
 package org.fyde.coupons
 
-import org.fyde.coupons.database.CouponType
+import org.fyde.coupons.database.*
+import org.fyde.couponsDbQualifier
 import org.fyde.mapFrom
+import org.fyde.toResult
+import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.transactions.transaction
 import org.jooby.Kooby
+import org.jooby.apitool.ApiTool
 import org.jsoup.Jsoup
 
 /**
@@ -12,22 +17,41 @@ import org.jsoup.Jsoup
 class Coupons : Kooby({
 
     path("/v1/coupons/") {
-        get("/:id") {
-            TODO()
+        get("/secret") { req ->
+            req.param("type").toString()
+                    .let { str -> CouponType.from(str) }
+                    ?.let {
+                        transaction(require(couponsDbQualifier, Database::class.java)) {
+                            selectSecretCouponsByType(it)
+                        }
+                    }.toResult()
+
         }
-        get("/:type") { req ->
-            TODO()
-//            getCoupons(req.param("type").toList().map { CouponType.from(it) })
+        get("/secret/:id") { req ->
+            transaction(require(couponsDbQualifier, Database::class.java)) {
+                getSecretCoupon(req.param("id").longValue())
+            }.toResult()
         }
-        get("/secret/:type") {
-            TODO()
+
+        get("/coupons/:id") { req ->
+            transaction(require(couponsDbQualifier, Database::class.java)) {
+                getCoupon(req.param("id").longValue()).toResult()
+            }
+        }
+
+        get("/coupons") { req ->
+            req.param("type").toString()
+                    .let { str -> CouponType.from(str) }
+                    ?.let {
+                        transaction(require(couponsDbQualifier, Database::class.java)) {
+                            selectByType(it)
+                        }
+                    }.toResult()
+
         }
     }
-})
 
-fun getCoupons(types: List<CouponType>) = types.asSequence()
-        .map { couponsRouter[it]!!.invoke() }
-        .reduce { acc, list -> acc + list }
+})
 
 val parsers: Map<CouponType, () -> List<String>> = mapOf(
         Pair(CouponType.KFC, {
@@ -40,8 +64,7 @@ val parsers: Map<CouponType, () -> List<String>> = mapOf(
                     .getElementsByAttributeValue("class", "coupon-img mt20")
                     .map { it.attr("src").replace("..", "https://burgerking.ru") }
 
-        }),
-        Pair(CouponType.NONE, { emptyList<String>() })
+        })
 )
 
 val couponsRouter: Map<CouponType, () -> List<String>> =
