@@ -37,6 +37,7 @@ dependencies {
     compile("org.jooby:jooby-gson:1.5.1")
     compile("org.jooby:jooby-apitool:1.5.1")
     compile("org.jooby:jooby-jdbc:1.5.1")
+    compile("org.jooby:jooby-flyway:1.5.1")
     compile("org.jsoup:jsoup:1.10.3")
     compile("org.jetbrains.exposed:exposed:0.10.5")
     compile("org.postgresql:postgresql:42.2.2")

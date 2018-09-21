@@ -1,0 +1,32 @@
+CREATE TABLE IF NOT EXISTS coupon_metadata (
+    id BIGSERIAL PRIMARY KEY,
+    share_text VARCHAR(255) NULL
+);
+
+CREATE TABLE IF NOT EXISTS coupon_group (
+    id BIGSERIAL PRIMARY KEY,
+    terms VARCHAR(255) NOT NULL,
+    publish_date DATE DEFAULT '2018-09-21' NOT NULL, url VARCHAR(50) NOT NULL,
+    invalidation_date TIMESTAMP NOT NULL, type VARCHAR(10) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS coupon (
+    coupon_id BIGINT NOT NULL,
+    group_id BIGINT NOT NULL,
+    publish_date DATE DEFAULT '2018-09-21' NOT NULL,
+    url VARCHAR(50) NOT NULL,
+
+    FOREIGN KEY (coupon_id) REFERENCES coupon_metadata(id) ON DELETE RESTRICT ON UPDATE RESTRICT,
+    FOREIGN KEY (group_id) REFERENCES coupon_group(id) ON DELETE RESTRICT ON UPDATE RESTRICT
+);
+CREATE TABLE IF NOT EXISTS secret_coupon (
+    url VARCHAR(50) NULL,
+    coupon_id BIGINT NOT NULL,
+    publish_date DATE DEFAULT '2018-09-21' NOT NULL,
+    code VARCHAR(10) NOT NULL,
+    "valid" BOOLEAN DEFAULT true NOT NULL,
+    report_number INT DEFAULT 0 NOT NULL,
+    type VARCHAR(10) NOT NULL,
+
+    FOREIGN KEY (coupon_id) REFERENCES coupon_metadata(id) ON DELETE RESTRICT ON UPDATE RESTRICT
+)
