@@ -16,12 +16,12 @@ enum class CouponType { KFC, BK, NONE;
 
 object CouponMetadatas: Table("coupon_metadata") {
     val id = long("id").autoIncrement().primaryKey()
-    val shareText = varchar("share_text", 255).nullable()
+    val shareText = varchar("share_text", 1024).nullable()
 }
 
 object CouponGroups: Table("coupon_group") {
     val id = long("id").autoIncrement().primaryKey()
-    val terms = varchar("terms", 255)
+    val terms = varchar("terms", 1024)
     val obtainDate = date("publish_date").default(DateTime.now())
     val url = varchar("url", 50)
     val invalidationDate = datetime("invalidation_date")
@@ -35,6 +35,7 @@ object SecretCoupons: Table("secret_coupon") {
     val code = varchar("code", 10)
     val valid = bool("valid").default(true)
     val reportNumber = integer("report_number").default(0)
+    val description = varchar("description", 1024)
     val type = enumerationByName("type", 10, CouponType::class)
 
 }
@@ -44,7 +45,6 @@ object Coupons: Table("coupon") {
     val groupId = long("group_id") references CouponGroups.id
     val publishDate = date("publish_date").default(DateTime.now())
     val url = varchar("url", 50)
-
 }
 
 

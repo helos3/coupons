@@ -1,0 +1,3 @@
+ALTER TABLE secret_coupon ADD COLUMN description VARCHAR(1024);
+ALTER TABLE coupon_metadata ALTER COLUMN share_text TYPE VARCHAR(1024);
+ALTER TABLE coupon_group ALTER COLUMN terms TYPE VARCHAR(1024);

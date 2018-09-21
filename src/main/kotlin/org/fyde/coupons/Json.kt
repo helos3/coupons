@@ -15,6 +15,7 @@ data class Coupon(
 data class SecretCoupon(
         val id: Long,
         val shareText: String,
+        val description: String? = null,
         val code: String? = null,
         val image: String? = null
 )
